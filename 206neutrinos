@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+import sys
+from math import pow, sqrt
+
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 84
+
+def exit_with_usage(binary_name, exit_value=EXIT_SUCCESS):
+    usage = [
+        'USAGE',
+        '\t{} n a h sd'.format(binary_name),
+        '',
+        'DESCRIPTION',
+        '\nn\tnumber of values',
+        '\na\tarithmetic mean',
+        '\nh\tharmonic mean',
+        '\nsd\tstandard deviation'
+    ]
+
+    print('\n'.join(usage), file=sys.stderr)
+    sys.exit(exit_value)
+
+def parse_argument(args):
+    try:
+        assert len(args) == 5
+        n = float(args[1])
+        a = float(args[2])
+        h = float(args[3])
+        sd = float(args[4])
+        assert 0 <= n
+        assert 0 <= a
+        assert 0 <= h
+        assert 0 <= sd
+    except:
+        exit_with_usage(args[0], exit_value=EXIT_FAILURE)
+    return n, a, h, sd, 0.0
+
+def get_input():
+    try:
+        value = input("Enter next value: ")
+        assert value != "END"
+        value = float(value)
+    except ValueError:
+        sys.exit(EXIT_FAILURE)
+    except AssertionError:
+        sys.exit(EXIT_SUCCESS)
+    return value
+
+def _depack(sd, a, n, value):
+    return ((pow(sd, 2) + pow(a, 2)) * n) + pow(value, 2)
+
+def compute_arithmetic_mean(a, n, value):
+    return ((a * n) + value) / (n + 1)
+
+def compute_standard_deviation(sd, a, n, value, new_a):
+    return sqrt((_depack(sd, a, n, value) / (n + 1)) - pow(new_a, 2))
+
+def compute_root_mean_square(sd, a, n, value):
+    return sqrt(_depack(sd, a, n, value) / (n + 1))
+
+def compute_harmonic_mean(h, n, value):
+    return (n + 1) / ((1 / value) + (n / h))
+
+def main(args):
+    if args[1:] == ['-h']:
+        exit_with_usage(args[0])
+    n, a, h, sd, rms = parse_argument(args)
+
+    while True:
+        value = get_input()
+        new_a = compute_arithmetic_mean(a, n, value)
+
+        rms = compute_root_mean_square(sd, a, n, value)
+        sd = compute_standard_deviation(sd, a, n, value, new_a)
+        h = compute_harmonic_mean(h, n, value)
+
+        a = new_a;
+        n += 1;
+        print("\tNumber of values:\t{:.0f}".format(n))
+        print("\tStandard deviation:\t{:.2f}".format(sd))
+        print("\tArithmetic mean:\t{:.2f}".format(a))
+        print("\tRoot mean square:\t{:.2f}".format(rms))
+        print("\tHarmonic mean:\t\t{:.2f}".format(h), end='\n\n')
+
+if __name__ == '__main__':
+    try:
+        main(sys.argv)
+    except Exception as e:
+        print(e)
+        sys.exit(EXIT_FAILURE)
+    else:
+        sys.exit(EXIT_SUCCESS)
